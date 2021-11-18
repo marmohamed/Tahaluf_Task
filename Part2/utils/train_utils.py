@@ -1,4 +1,4 @@
-from ..training_utils.trainer import Trainer
+from utils.trainer import Trainer
 from datasets.clothing_dataset import ClothingDataset
 from datasets.augmentations import *
 from models.model import *
