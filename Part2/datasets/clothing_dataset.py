@@ -18,6 +18,10 @@ class ClothingDataset(Dataset):
         self.split = split
         self.transform = transform
 
+        self.class_names = sorted(list(self.df.label.unique()))
+        self.n_classes = len(self.class_names)
+        self.df.label = self.df.label.map(lambda i: self.class_names.index(i))
+
         if split is not None:
             sss = StratifiedShuffleSplit(n_splits=1, test_size=valid_size, random_state=0)
             for train_index, test_index in sss.split(self.df['image'], self.df['label']):

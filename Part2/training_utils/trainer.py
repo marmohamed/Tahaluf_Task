@@ -11,8 +11,8 @@ class Trainer:
         self.optimizer = kwargs['optimizer']
         self.loss_fn = kwargs['loss_fn']
         self.args = kwargs['args']
+        self.device = kwargs['device']
         self.best_acc = float('-inf')
-        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     def train(self):
         epochs = self.args.epochs

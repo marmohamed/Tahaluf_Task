@@ -5,6 +5,8 @@ from utils.train_utils import *
 def main():
     args = get_arguments()
 
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
     train_dataset = get_dataset(args, split='train')
     valid_dataset = get_dataset(args, split='valid')    
 
@@ -12,9 +14,9 @@ def main():
     valid_data_loader = get_data_loader(valid_dataset, args)
 
     model = get_model(args)
-    optimizer = get_optimizer(args)
+    optimizer = get_optimizer(model, args)
     loss_fn = get_loss_fn(args)
-    scheduler = get_scheduler(args)
+    scheduler = get_scheduler(optimizer, args)
 
     kwargs = {
         'model': model,
@@ -28,8 +30,6 @@ def main():
     model_trainer = get_trainer(**kwargs)
 
     model_trainer.train()
-
-
 
 
 if __name__ == "__main__":
