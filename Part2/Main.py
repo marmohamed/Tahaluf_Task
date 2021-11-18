@@ -13,7 +13,7 @@ def main():
     train_data_loader = get_data_loader(train_dataset, args)
     valid_data_loader = get_data_loader(valid_dataset, args)
 
-    model = get_model(args)
+    model = get_model(train_dataset.n_classes, device, args)
     optimizer = get_optimizer(model, args)
     loss_fn = get_loss_fn(args)
     scheduler = get_scheduler(optimizer, args)

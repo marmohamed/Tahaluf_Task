@@ -18,7 +18,7 @@ def seed_everything(args):
 def get_dataset(args, split='train'):
     transforms = get_transforms_obj(split)
     dataset = ClothingDataset(args.csv_data_path, args.data_path, split, transforms)
-    return dataset, n_classes
+    return dataset
 
 def get_data_loader(dataset, split, args):
     shuffle = split.lower() == 'train'
