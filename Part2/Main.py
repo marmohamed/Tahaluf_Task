@@ -1,4 +1,4 @@
-from Tahaluf_Task.Part2.utils.train_utils import get_dataset
+from utils.train_utils import get_dataset
 from utils.args_parser import get_arguments
 from utils.train_utils import *
 
@@ -10,8 +10,8 @@ def main():
     train_dataset = get_dataset(args, split='train')
     valid_dataset = get_dataset(args, split='valid')    
 
-    train_data_loader = get_data_loader(train_dataset, args)
-    valid_data_loader = get_data_loader(valid_dataset, args)
+    train_data_loader = get_data_loader(train_dataset, 'train', args)
+    valid_data_loader = get_data_loader(valid_dataset, 'valid', args)
 
     model = get_model(train_dataset.n_classes, device, args)
     optimizer = get_optimizer(model, args)
@@ -25,6 +25,7 @@ def main():
         'valid_data_loader': valid_data_loader,
         'loss_fn': loss_fn,
         'scheduler': scheduler,
+        'device': device,
         'args': args
     }
     model_trainer = get_trainer(**kwargs)

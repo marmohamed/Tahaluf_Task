@@ -30,6 +30,8 @@ class ClothingDataset(Dataset):
                 else:
                     self.df = self.df.iloc[train_index]
 
+        self.image_ids = self.df['image'].unique().tolist()
+
     def clean_dataset(self, df):
         df = df[(df.label != 'Other') & (df.label != 'Not sure')]
         return df
@@ -41,15 +43,17 @@ class ClothingDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        img_path = os.path.join(self.root_dir,
-                                self.df.loc[idx, 'image'] + ".jpg")
+        image_id = self.image_ids[idx]
+        img_path = os.path.join(self.root_dir, image_id + ".jpg")
         image = io.imread(img_path)
-        label = self.df.loc[idx, 'label']
+        label = self.df[self.df['image'] == image_id]["label"].values
+        label = torch.tensor(label)
         sample = {'image': image, 'label': label}
 
         image = image / 255.
 
         if self.transform:
-            sample = self.transform(sample)
-
-        return sample
+            sample = self.transform(image=image)
+            image = sample['image']
+            # label = sample['label']
+        return torch.tensor(image), label

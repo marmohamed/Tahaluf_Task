@@ -21,7 +21,7 @@ class Trainer:
             tk = tqdm(self.train_data_loader)
             self.model.train()
             for images, targets in tk:
-                images = images.to(self.device)
+                images = images.to(self.device).float() 
                 targets = targets[:, 0].to(self.device)
                 pred = self.model(images)
                 loss = self.loss_fn(pred, targets)
@@ -42,7 +42,7 @@ class Trainer:
             c = 0 
             correct_sum = 0
             for images, targets in tk:
-                images = images.to(self.device)
+                images = images.to(self.device).float() 
                 targets = targets[:, 0]
                 val_output = self.model(images)
                 val_output = val_output.cpu()

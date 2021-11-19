@@ -26,7 +26,7 @@ def get_data_loader(dataset, split, args):
             dataset,
             batch_size=args.batch_size,
             shuffle=shuffle,
-            num_workers=4
+            num_workers=2
         )
     return data_loader
 
@@ -49,7 +49,7 @@ def get_scheduler(optimizer, args):
                                                               verbose=True, min_lr=1e-8)
     return lr_scheduler
 
-def get_trainer(model, train_data_loader, valid_data_loader, args):
-    trainer = Trainer(model, train_data_loader, valid_data_loader, args)
+def get_trainer(**kwargs):
+    trainer = Trainer(**kwargs)
     return trainer
 
