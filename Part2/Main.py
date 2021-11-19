@@ -17,6 +17,7 @@ def main():
     optimizer = get_optimizer(model, args)
     loss_fn = get_loss_fn(args)
     scheduler = get_scheduler(optimizer, args)
+    writer = get_writer(args)
 
     kwargs = {
         'model': model,
@@ -26,7 +27,8 @@ def main():
         'loss_fn': loss_fn,
         'scheduler': scheduler,
         'device': device,
-        'args': args
+        'args': args,
+        'writer': writer
     }
     model_trainer = get_trainer(**kwargs)
 

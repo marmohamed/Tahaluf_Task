@@ -3,6 +3,7 @@ from datasets.clothing_dataset import ClothingDataset
 from datasets.augmentations import *
 from models.model import *
 from torch.utils.data import Dataset, DataLoader
+from torch.utils.tensorboard import SummaryWriter
 import torch
 import random
 import numpy as np
@@ -48,6 +49,12 @@ def get_scheduler(optimizer, args):
                                                               factor=0.5, patience=3,
                                                               verbose=True, min_lr=1e-8)
     return lr_scheduler
+
+def get_writer(args):
+    if args.write_logs:
+        writer = SummaryWriter(log_dir=args.log_dir)
+        return writer
+    return None
 
 def get_trainer(**kwargs):
     trainer = Trainer(**kwargs)

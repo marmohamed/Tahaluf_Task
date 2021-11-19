@@ -7,6 +7,8 @@ def get_arguments():
     parser.add_argument("--lr", default=1e-3, type=float)
     parser.add_argument("--save_path", default='./', type=str)
     parser.add_argument("--csv_data_path", default='./csv_data_path.csv', type=str)
-    parser.add_argument("--data_path", default='./data_path/', type=str)
+    parser.add_argument("--data_path", default='./', type=str)
+    parser.add_argument("--write_logs", action='store_true')
+    parser.add_argument("--log_dir", default='./', type=str)
     args = parser.parse_args()
     return args

@@ -12,10 +12,12 @@ class Trainer:
         self.loss_fn = kwargs['loss_fn']
         self.args = kwargs['args']
         self.device = kwargs['device']
+        self.writer = writer
         self.best_acc = float('-inf')
 
     def train(self):
         epochs = self.args.epochs
+        counter = 0
         for epoch in range(epochs):
             print('start epoch', str(epoch))
             tk = tqdm(self.train_data_loader)
@@ -30,6 +32,8 @@ class Trainer:
                 loss.backward()
                 self.optimizer.step()
                 tk.set_postfix(train_loss=loss.item())
+                self.write_log("Train/Loss", loss.item(), counter)
+                counter += 1
             tk.close()
 
             self.eval(epoch)
@@ -55,6 +59,7 @@ class Trainer:
                 self.best_acc = acc
                 print('saving the best model, Acc = ', str(acc))
                 self.export_model(epoch)
+            self.write_log("Val/Acc", acc, epoch)
             tk.close()
 
     def export_model(self, epoch):
@@ -62,4 +67,10 @@ class Trainer:
             'epoch': epoch,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
-            }, self.args.save_path)
+            }, self.args.save_path + "/best_model_epoch_" + str(epoch) + ".pth")
+
+
+    def write_log(self, key, value, step):
+        if self.writer:
+            self.writer.add_scalar(key, value, step)
+        

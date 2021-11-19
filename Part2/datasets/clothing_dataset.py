@@ -45,15 +45,14 @@ class ClothingDataset(Dataset):
 
         image_id = self.image_ids[idx]
         img_path = os.path.join(self.root_dir, image_id + ".jpg")
-        image = io.imread(img_path)
+        image = io.imread(img_path)[:, :, :3]
         label = self.df[self.df['image'] == image_id]["label"].values
         label = torch.tensor(label)
-        sample = {'image': image, 'label': label}
-
+        # sample = {'image': image, 'label': label}
         image = image / 255.
-
         if self.transform:
             sample = self.transform(image=image)
             image = sample['image']
             # label = sample['label']
-        return torch.tensor(image), label
+        # print(img_path, image.shape)
+        return image, label
