@@ -1,6 +1,7 @@
 import torch
 from tqdm import tqdm
 import numpy as np
+from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
 
 class Trainer:
     
@@ -35,7 +36,7 @@ class Trainer:
                 self.write_log("Train/Loss", loss.item(), counter)
                 counter += 1
             tk.close()
-
+            # break
             self.eval(epoch)
 
     def eval(self, epoch):
@@ -43,23 +44,35 @@ class Trainer:
         acc = 0
         with torch.no_grad():
             tk = tqdm(self.valid_data_loader)
-            c = 0 
-            correct_sum = 0
+            # c = 0 
+            # correct_sum = 0
+            y_true = []
+            y_pred = []
             for images, targets in tk:
                 images = images.to(self.device).float() 
                 targets = targets[:, 0]
                 val_output = self.model(images)
                 val_output = val_output.cpu()
                 val_output = np.argmax(val_output, axis=1)
-                correct_sum += torch.sum(val_output == targets)
-                c += len(targets)
-            acc = correct_sum * 1.0 / c
-            acc = acc.item() 
+                y_pred.extend(val_output)
+                y_true.extend(targets)
+                # correct_sum += torch.sum(val_output == targets)
+                # c += len(targets)
+            # acc = correct_sum * 1.0 / c
+            # acc = acc.item() 
+            acc = accuracy_score(y_true, y_pred)
+            f1_val = f1_score(y_true, y_pred)
+            cm = confusion_matrix(y_true, y_pred)
+            cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+            cm = cm.diagonal()
+            self.write_log("Val/Acc", acc, epoch)
+            self.write_log("Val/f1_score", f1_val, epoch)
+            for i in range(len(cm)):
+                self.write_log("Val/Acc-class " + str(i), cm[i], epoch)
             if acc > self.best_acc:
                 self.best_acc = acc
                 print('saving the best model, Acc = ', str(acc))
                 self.export_model(epoch)
-            self.write_log("Val/Acc", acc, epoch)
             tk.close()
 
     def export_model(self, epoch):

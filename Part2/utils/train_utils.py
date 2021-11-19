@@ -18,7 +18,7 @@ def seed_everything(args):
     torch.backends.cudnn.benchmark = False
 
 def get_dataset(args, split='train'):
-    transforms = get_transforms_obj(split)
+    transforms = get_transforms_obj(split, height=args.height, width=args.width)
     dataset = ClothingDataset(args.csv_data_path, args.data_path, split, transforms)
     return dataset
 

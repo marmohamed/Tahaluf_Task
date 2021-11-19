@@ -70,13 +70,23 @@ def receptive_field(model, input_size, batch_size=-1, device="cuda"):
                     receptive_field[m_key]["r"] = 0
                     receptive_field[m_key]["start"] = 0
                 elif class_name == "AdaptiveAvgPool2d":
-                    receptive_field["0"]["conv_stage"] = False
-                    receptive_field[m_key]["j"] = 0
-                    receptive_field[m_key]["r"] = 0
-                    receptive_field[m_key]["start"] = 0
+                    receptive_field[m_key]["j"] = p_j
+                    receptive_field[m_key]["r"] = p_r
+                    receptive_field[m_key]["start"] = p_start
+                elif class_name == "ZeroPad2d":
+                    receptive_field[m_key]["j"] = p_j
+                    receptive_field[m_key]["r"] = p_r
+                    receptive_field[m_key]["start"] = p_start
+                elif class_name == "Conv2dStaticSamePadding":
+                    receptive_field[m_key]["j"] = p_j
+                    receptive_field[m_key]["r"] = p_r
+                    receptive_field[m_key]["start"] = p_start
                 else:
-                    raise ValueError("module not ok", class_name)
-                    pass
+                    receptive_field[m_key]["j"] = p_j
+                    receptive_field[m_key]["r"] = p_r
+                    receptive_field[m_key]["start"] = p_start
+                    # raise ValueError("module not ok", class_name)
+                    # pass
             receptive_field[m_key]["input_shape"] = list(input[0].size()) # only one
             receptive_field[m_key]["input_shape"][0] = batch_size
             if isinstance(output, (list, tuple)):

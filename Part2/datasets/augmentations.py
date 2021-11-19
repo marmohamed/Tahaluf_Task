@@ -41,8 +41,8 @@ class ValidAugmentation(Augmentation):
             ToTensorV2(p=1.0)
         ])
 
-def get_transforms_obj(split):
+def get_transforms_obj(split, height=512, width=512):
     if split.lower() == 'train':
-        return TrainAugmentation().get_transforms()
+        return TrainAugmentation().get_transforms(height=height, width=width)
     else:
-        return ValidAugmentation().get_transforms()
+        return ValidAugmentation().get_transforms(height=height, width=width)
