@@ -16,5 +16,6 @@ def get_arguments():
     parser.add_argument('--model_type', default='resnet50', type=str)
     parser.add_argument("--width", default=512, type=int)
     parser.add_argument("--height", default=512, type=int)
+    parser.add_argument('--get_model_info', action='store_true')
     args = parser.parse_args()
     return args

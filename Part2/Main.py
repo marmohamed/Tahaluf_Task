@@ -18,10 +18,11 @@ def main():
     valid_data_loader = get_data_loader(valid_dataset, 'valid', args)
 
     model = get_model(train_dataset.n_classes, device, args)
-    macs, params = get_macs(model, args)
-    print("macs = ", str(macs), ", params = ", str(params))
-    receptive_field_dict = receptive_field(model, (3, args.width, args.height))
-    # print("receptive_field_dict = ", receptive_field_dict)
+    if args.get_model_info:
+        macs, params = get_macs(model, device, args)
+        print("macs = ", str(macs), ", params = ", str(params))
+        receptive_field_dict = receptive_field(model, (3, args.width, args.height))
+        # print("receptive_field_dict = ", receptive_field_dict)
     optimizer = get_optimizer(model, args)
     loss_fn = get_loss_fn(args, train_dataset.label_dist, device)
     scheduler = get_scheduler(optimizer, args)

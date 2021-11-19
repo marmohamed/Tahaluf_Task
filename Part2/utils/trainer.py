@@ -14,6 +14,7 @@ class Trainer:
         self.args = kwargs['args']
         self.device = kwargs['device']
         self.writer = kwargs['writer']
+        self.scheduler = kwargs['scheduler']
         self.best_acc = float('-inf')
 
     def train(self):
@@ -35,9 +36,11 @@ class Trainer:
                 tk.set_postfix(train_loss=loss.item())
                 self.write_log("Train/Loss", loss.item(), counter)
                 counter += 1
+                # break
             tk.close()
-            # break
             self.eval(epoch)
+            if self.scheduler:
+                self.scheduler.step(self.best_acc)
 
     def eval(self, epoch):
         self.model.eval();
@@ -56,23 +59,26 @@ class Trainer:
                 val_output = np.argmax(val_output, axis=1)
                 y_pred.extend(val_output)
                 y_true.extend(targets)
+                # break
                 # correct_sum += torch.sum(val_output == targets)
                 # c += len(targets)
             # acc = correct_sum * 1.0 / c
             # acc = acc.item() 
             acc = accuracy_score(y_true, y_pred)
-            f1_val = f1_score(y_true, y_pred)
+            f1_val_macro = f1_score(y_true, y_pred, average='macro')
+            f1_val_micro = f1_score(y_true, y_pred, average='micro')
             cm = confusion_matrix(y_true, y_pred)
             cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
             cm = cm.diagonal()
             self.write_log("Val/Acc", acc, epoch)
-            self.write_log("Val/f1_score", f1_val, epoch)
+            self.write_log("Val/f1_score_macro", f1_val_macro, epoch)
+            self.write_log("Val/f1_score_micro", f1_val_micro, epoch)
             for i in range(len(cm)):
                 self.write_log("Val/Acc-class " + str(i), cm[i], epoch)
             if acc > self.best_acc:
                 self.best_acc = acc
-                print('saving the best model, Acc = ', str(acc))
-                self.export_model(epoch)
+                print('The best model, epoch = ', str(epoch), ', Acc = ', str(acc))
+            self.export_model(epoch)
             tk.close()
 
     def export_model(self, epoch):
