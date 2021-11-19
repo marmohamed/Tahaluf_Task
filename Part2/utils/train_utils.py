@@ -7,6 +7,7 @@ from torch.utils.tensorboard import SummaryWriter
 import torch
 import random
 import numpy as np
+import os
 
 def seed_everything(args):
     seed = args.seed
@@ -40,8 +41,13 @@ def get_optimizer(model, args):
     optimizer = torch.optim.Adam(params, lr=args.lr)
     return optimizer
 
-def get_loss_fn(args):
-    loss_func = torch.nn.CrossEntropyLoss()
+def get_loss_fn(args, nSamples=None, device=None):
+    if args.weight_loss:
+        normedWeights = [1 - (x / sum(nSamples)) for x in nSamples]
+        normedWeights = torch.FloatTensor(normedWeights).to(device)
+        loss_func = torch.nn.CrossEntropyLoss(weight=normedWeights)
+    else:
+        loss_func = torch.nn.CrossEntropyLoss()
     return loss_func
 
 def get_scheduler(optimizer, args):
@@ -52,7 +58,9 @@ def get_scheduler(optimizer, args):
 
 def get_writer(args):
     if args.write_logs:
-        writer = SummaryWriter(log_dir=args.log_dir)
+        log_dir = os.path.join(args.log_dir, args.experiment_name)
+        os.makedirs(log_dir, exist_ok=True)
+        writer = SummaryWriter(log_dir=log_dir)
         return writer
     return None
 

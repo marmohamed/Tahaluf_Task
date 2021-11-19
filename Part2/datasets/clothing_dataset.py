@@ -30,6 +30,11 @@ class ClothingDataset(Dataset):
                 else:
                     self.df = self.df.iloc[train_index]
 
+        if split is not None and split.lower() == 'train':
+            self.label_dist = self.df['label'].value_counts().sort_index().tolist()
+        else:
+          self.label_dist = None
+
         self.image_ids = self.df['image'].unique().tolist()
 
     def clean_dataset(self, df):
@@ -50,6 +55,7 @@ class ClothingDataset(Dataset):
         label = torch.tensor(label)
         # sample = {'image': image, 'label': label}
         image = image / 255.
+        image = image.astype(np.float32)
         if self.transform:
             sample = self.transform(image=image)
             image = sample['image']

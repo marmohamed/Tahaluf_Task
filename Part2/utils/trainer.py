@@ -12,7 +12,7 @@ class Trainer:
         self.loss_fn = kwargs['loss_fn']
         self.args = kwargs['args']
         self.device = kwargs['device']
-        self.writer = writer
+        self.writer = kwargs['writer']
         self.best_acc = float('-inf')
 
     def train(self):
