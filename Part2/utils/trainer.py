@@ -99,7 +99,7 @@ class Trainer:
             'epoch': epoch,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
-            }, self.args.save_path + "/best_model_epoch_" + str(epoch) + ".pth")
+            }, os.path.join(self.args.save_path, self.args.experiment_name, "best_model_epoch_" + str(epoch) + ".pth"))
 
 
     def write_log(self, key, value, step):

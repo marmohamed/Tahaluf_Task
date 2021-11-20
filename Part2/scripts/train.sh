@@ -1,6 +1,6 @@
 for lr in 0.001 0.0001
 do
-    for model in resnet50 efficientnet0
+    for model in resnet50 efficientnet0 cspresnext50
     do
         exp_name=exp_model_"$model"_lr_"$lr"
         python Main.py --csv_data_path Data/data/images.csv \

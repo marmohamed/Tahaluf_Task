@@ -3,9 +3,16 @@ from utils.args_parser import get_arguments
 from utils.train_utils import *
 from model_info.macs import *
 from model_info.receptive_field import *
+import json
+import os
 
 def main():
     args = get_arguments()
+
+    os.makedirs(os.path.join(args.save_path, args.experiment_name), exist_ok=True)
+    with open(os.path.join(args.save_path, args.experiment_name, "args.txt"), 'w') as f:
+        json.dump(args.__dict__, f, indent=2)
+    
 
     seed_everything(args)
 
