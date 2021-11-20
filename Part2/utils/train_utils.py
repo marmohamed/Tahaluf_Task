@@ -58,7 +58,7 @@ def get_loss_fn(args, nSamples=None, device=None, gpu=None):
     else:
         loss_func = torch.nn.CrossEntropyLoss()
     if gpu is not None:
-        loss_fn = loss_fn.cuda(gpu)
+        loss_func = loss_func.cuda(gpu)
     return loss_func
 
 def get_scheduler(optimizer, args):
