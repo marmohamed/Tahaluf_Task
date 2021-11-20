@@ -18,7 +18,11 @@ def get_arguments():
     parser.add_argument("--height", default=512, type=int, help="height of the image, default=512")
     parser.add_argument('--get_model_info', action='store_true', help="get the macs, params and receptive field of the model, not all models are supported, default=False")
     parser.add_argument('--mixed_precision', action='store_true', help="use mixed precision, default=False")
-    
+
+    parser.add_argument('--use_kd', action='store_true', help="use knowledge distillation")
+    parser.add_argument('--teacher_model_path', type=str, default="./model.pth", help="teacher model path, default=./model.pth")
+    parser.add_argument('--student_model_type', type=str, default='resnet50', help='stuent model type, default=resnet50')
+
     parser.add_argument('--train_multinode', action='store_true', help="Enable distributed training")
     parser.add_argument('-n', '--nodes', default=1,
                         type=int, metavar='N',

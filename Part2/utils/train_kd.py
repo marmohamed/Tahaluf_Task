@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
 import os
 
-class Trainer:
+class KDTrainer:
     
     def __init__(self, gpu=None, rank=None, **kwargs):
         self.gpu = gpu
@@ -18,6 +18,7 @@ class Trainer:
         self.device = kwargs['device']
         self.writer = kwargs['writer']
         self.scheduler = kwargs['scheduler']
+        self.model_student = kwargs['model_student']
         self.mixed_precision = self.args.mixed_precision
         self.best_acc = float('-inf')
 
@@ -29,7 +30,8 @@ class Trainer:
         for epoch in range(epochs):
             print('start epoch', str(epoch))
             tk = tqdm(self.train_data_loader)
-            self.model.train()
+            self.model.eval()
+            self.model_student.train()
             for images, targets in tk:
                 if self.args.train_multinode and self.gpu is not None:
                     images = images.cuda(non_blocking=True).float()
@@ -39,11 +41,22 @@ class Trainer:
                     targets = targets[:, 0].to(self.device)
                 if self.mixed_precision:
                     with torch.cuda.amp.autocast():
-                        pred = self.model(images)
-                        loss = self.loss_fn(pred, targets)
+                        pred = self.model_student(images)
+                        # loss = self.loss_fn(pred, targets)
                 else:
-                    pred = self.model(images)
-                    loss = self.loss_fn(pred, targets)
+                    pred = self.model_student(images)
+                    # loss = self.loss_fn(pred, targets)
+
+                with torch.no_grad():
+                    output_teacher_batch = self.model(images).to(self.device)
+
+                alpha = 0.2
+                T = 2
+                l1 = torch.nn.KLDivLoss()(torch.nn.functional.log_softmax(pred/T, dim=1),
+                                        torch.nn.functional.softmax(output_teacher_batch/T, dim=1)) * (alpha * T * T)
+                l2 = self.loss_fn(pred, targets) * (1. - alpha)
+                loss = l1 + l2
+
 
                 self.optimizer.zero_grad()
                 if self.mixed_precision:
@@ -56,7 +69,7 @@ class Trainer:
                 tk.set_postfix(train_loss=loss.item())
                 self.write_log("Train/Loss", loss.item(), counter)
                 counter += 1
-                # break
+                break
             tk.close()
             self.eval(epoch)
             if self.scheduler:
@@ -64,6 +77,7 @@ class Trainer:
 
     def eval(self, epoch):
         self.model.eval()
+        self.model_student.eval()
         # acc = 0
         with torch.no_grad():
             tk = tqdm(self.valid_data_loader)
@@ -80,12 +94,12 @@ class Trainer:
                     # targets = targets[:, 0].to(self.device)
                 # images = images.to(self.device).float() 
                 targets = targets[:, 0]
-                val_output = self.model(images)
+                val_output = self.model_student(images)
                 val_output = val_output.cpu()
                 val_output = np.argmax(val_output, axis=1)
                 y_pred.extend(val_output)
                 y_true.extend(targets)
-                # break
+                break
                 # correct_sum += torch.sum(val_output == targets)
                 # c += len(targets)
             # acc = correct_sum * 1.0 / c
@@ -111,7 +125,7 @@ class Trainer:
         if (self.args.train_multinode and self.rank == 0) or not self.args.train_multinode:
             torch.save({
                 'epoch': epoch,
-                'model_state_dict': self.model.state_dict(),
+                'model_state_dict': self.model_student.state_dict(),
                 'optimizer_state_dict': self.optimizer.state_dict(),
                 }, os.path.join(self.args.save_path, self.args.experiment_name, "best_model_epoch_" + str(epoch) + ".pth"))
 

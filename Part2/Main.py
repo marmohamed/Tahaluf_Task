@@ -5,14 +5,15 @@ from model_info.macs import *
 from model_info.receptive_field import *
 import json
 import os
+# from KD_Lib.KD import VanillaKD
 
-import torch.distributed as dist
-from apex.parallel import DistributedDataParallel as DDP
-import torch.multiprocessing as mp
 
 def train(gpu=None, args=None):
 
     if args.train_multinode:
+        import torch.distributed as dist
+        from apex.parallel import DistributedDataParallel as DDP
+        import torch.multiprocessing as mp
         rank = args.nr * args.gpus + gpu
         dist.init_process_group(backend='nccl', init_method='env://', world_size=args.world_size, rank=rank)
     else:
@@ -38,31 +39,42 @@ def train(gpu=None, args=None):
     train_data_loader = get_data_loader(train_dataset, 'train', args, sampler=train_sampler)
     valid_data_loader = get_data_loader(valid_dataset, 'valid', args, sampler=val_sampler)
 
-    model = get_model(train_dataset.n_classes, device, args)
-    if args.train_multinode:
-        model = nn.parallel.DistributedDataParallel(model, device_ids=[gpu])
+    model = get_model(train_dataset.n_classes, device, False, args)
+    if args.use_kd:
+        checkpoint = torch.load(args.teacher_model_path)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        model_student = get_model(train_dataset.n_classes, device, True, args)
+        optimizer_student = get_optimizer(model_student, args)
+    else:
+      model_student = None
+
     if args.get_model_info:
         macs, params = get_macs(model, device, args)
         print("macs = ", str(macs), ", params = ", str(params))
         receptive_field_dict = receptive_field(model, (3, args.width, args.height))
         # print("receptive_field_dict = ", receptive_field_dict)
+
+    if args.train_multinode:
+        model = nn.parallel.DistributedDataParallel(model, device_ids=[gpu])
+
     optimizer = get_optimizer(model, args)
     loss_fn = get_loss_fn(args, train_dataset.label_dist, device, gpu)
     scheduler = get_scheduler(optimizer, args)
     writer = get_writer(args, get_writer)
 
     kwargs = {
-        'model': model,
-        'optimizer': optimizer,
-        'train_data_loader': train_data_loader,
-        'valid_data_loader': valid_data_loader,
-        'loss_fn': loss_fn,
-        'scheduler': scheduler,
-        'device': device,
-        'args': args,
-        'writer': writer
-    }
-    model_trainer = get_trainer(**kwargs)
+            'model': model,
+            'optimizer': optimizer,
+            'train_data_loader': train_data_loader,
+            'valid_data_loader': valid_data_loader,
+            'loss_fn': loss_fn,
+            'scheduler': scheduler,
+            'device': device,
+            'args': args,
+            'writer': writer,
+            'model_student': model_student
+        }
+    model_trainer = get_trainer(args.use_kd, **kwargs)
 
     model_trainer.train()
 

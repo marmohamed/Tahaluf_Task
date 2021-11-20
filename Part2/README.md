@@ -48,6 +48,14 @@ We have multiple model to try from torchvision, efficientnet and timm libraries,
 
 * Distributed Training:
 
-It is supported and you can check the arguments for enabling multi gpu/node training but not tested on my machine as I do not have te required resources.
+It is supported and you can check the arguments for enabling multi gpu/node training.
+
+* Minimal model:
+
+Regarding the model deployment and the reequirements for minimal model size, we can train any model we want then use model distillation to get a smaller model for deployment.
+
+It is implemented , add the argument `--use_kd` and specify the teacher model path and the student model type.
+
+Note: it does not work with mixed precision.
 
 

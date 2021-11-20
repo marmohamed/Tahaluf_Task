@@ -1,4 +1,5 @@
 from utils.trainer import Trainer
+from utils.train_kd import KDTrainer
 from datasets.clothing_dataset import ClothingDataset
 from datasets.augmentations import *
 from models.model import *
@@ -41,8 +42,8 @@ def get_data_loader(dataset, split, args, sampler=None):
             )
     return data_loader
 
-def get_model(n_claases, device, args):
-    model = build_model(n_claases, device, args)
+def get_model(n_claases, device, student, args):
+    model = build_model(n_claases, device, student, args)
     return model
 
 def get_optimizer(model, args):
@@ -78,7 +79,10 @@ def get_writer(args, gpu_num=None):
         return writer
     return None
 
-def get_trainer(**kwargs):
-    trainer = Trainer(**kwargs)
+def get_trainer(use_kd, **kwargs):
+    if use_kd:
+        trainer = KDTrainer(**kwargs)
+    else:
+        trainer = Trainer(**kwargs)
     return trainer
 
