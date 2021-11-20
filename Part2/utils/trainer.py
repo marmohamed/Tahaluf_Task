@@ -15,11 +15,14 @@ class Trainer:
         self.device = kwargs['device']
         self.writer = kwargs['writer']
         self.scheduler = kwargs['scheduler']
+        self.mixed_precision = self.args.mixed_precision
         self.best_acc = float('-inf')
 
     def train(self):
         epochs = self.args.epochs
         counter = 0
+        if self.mixed_precision:
+            scaler = torch.cuda.amp.GradScaler()
         for epoch in range(epochs):
             print('start epoch', str(epoch))
             tk = tqdm(self.train_data_loader)
@@ -27,12 +30,22 @@ class Trainer:
             for images, targets in tk:
                 images = images.to(self.device).float() 
                 targets = targets[:, 0].to(self.device)
-                pred = self.model(images)
-                loss = self.loss_fn(pred, targets)
+                if self.mixed_precision:
+                    with torch.cuda.amp.autocast():
+                        pred = self.model(images)
+                        loss = self.loss_fn(pred, targets)
+                else:
+                    pred = self.model(images)
+                    loss = self.loss_fn(pred, targets)
 
                 self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
+                if self.mixed_precision:
+                    scaler.scale(loss).backward()
+                    scaler.step(self.optimizer)
+                    scaler.update()
+                else:
+                    loss.backward()
+                    self.optimizer.step()
                 tk.set_postfix(train_loss=loss.item())
                 self.write_log("Train/Loss", loss.item(), counter)
                 counter += 1

@@ -17,5 +17,6 @@ def get_arguments():
     parser.add_argument("--width", default=512, type=int)
     parser.add_argument("--height", default=512, type=int)
     parser.add_argument('--get_model_info', action='store_true')
+    parser.add_argument('--mixed_precision', action='store_true')
     args = parser.parse_args()
     return args
