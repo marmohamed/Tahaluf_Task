@@ -22,14 +22,23 @@ def get_dataset(args, split='train'):
     dataset = ClothingDataset(args.csv_data_path, args.data_path, split, transforms)
     return dataset
 
-def get_data_loader(dataset, split, args):
-    shuffle = split.lower() == 'train'
-    data_loader = DataLoader(
-            dataset,
-            batch_size=args.batch_size,
-            shuffle=shuffle,
-            num_workers=2
-        )
+def get_data_loader(dataset, split, args, sampler=None):
+    if sampler is None:
+        shuffle = split.lower() == 'train'
+        data_loader = DataLoader(
+                dataset,
+                batch_size=args.batch_size,
+                shuffle=shuffle,
+                num_workers=2
+            )
+    else:
+        data_loader = DataLoader(
+                dataset,
+                batch_size=args.batch_size,
+                shuffle=False,
+                num_workers=2,
+                sampler=sampler
+            )
     return data_loader
 
 def get_model(n_claases, device, args):
@@ -41,13 +50,15 @@ def get_optimizer(model, args):
     optimizer = torch.optim.Adam(params, lr=args.lr)
     return optimizer
 
-def get_loss_fn(args, nSamples=None, device=None):
+def get_loss_fn(args, nSamples=None, device=None, gpu=None):
     if args.weight_loss:
         normedWeights = [1 - (x / sum(nSamples)) for x in nSamples]
         normedWeights = torch.FloatTensor(normedWeights).to(device)
         loss_func = torch.nn.CrossEntropyLoss(weight=normedWeights)
     else:
         loss_func = torch.nn.CrossEntropyLoss()
+    if gpu is not None:
+        loss_fn = loss_fn.cuda(gpu)
     return loss_func
 
 def get_scheduler(optimizer, args):
@@ -56,9 +67,12 @@ def get_scheduler(optimizer, args):
                                                               verbose=True, min_lr=1e-8)
     return lr_scheduler
 
-def get_writer(args):
+def get_writer(args, gpu_num=None):
     if args.write_logs:
-        log_dir = os.path.join(args.log_dir, args.experiment_name)
+        if gpu_num is not None:
+            log_dir = os.path.join(args.log_dir, args.experiment_name, str(gpu_num))
+        else:
+            log_dir = os.path.join(args.log_dir, args.experiment_name)
         os.makedirs(log_dir, exist_ok=True)
         writer = SummaryWriter(log_dir=log_dir)
         return writer

@@ -18,5 +18,14 @@ def get_arguments():
     parser.add_argument("--height", default=512, type=int, help="height of the image, default=512")
     parser.add_argument('--get_model_info', action='store_true', help="get the macs, params and receptive field of the model, not all models are supported, default=False")
     parser.add_argument('--mixed_precision', action='store_true', help="use mixed precision, default=False")
+    
+    parser.add_argument('--train_multinode', action='store_true', help="Enable distributed training")
+    parser.add_argument('-n', '--nodes', default=1,
+                        type=int, metavar='N',
+                        help="Number of nodes")
+    parser.add_argument('-g', '--gpus', default=1, type=int,
+                        help='number of gpus per node')
+    parser.add_argument('-nr', '--nr', default=0, type=int,
+                        help='ranking within the nodes')
     args = parser.parse_args()
     return args

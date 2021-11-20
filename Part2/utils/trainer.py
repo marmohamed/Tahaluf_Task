@@ -5,7 +5,9 @@ from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
 
 class Trainer:
     
-    def __init__(self, **kwargs):
+    def __init__(self, gpu=None, rank=None, **kwargs):
+        self.gpu = gpu
+        self.rank = rank
         self.model = kwargs['model']
         self.train_data_loader = kwargs['train_data_loader']
         self.valid_data_loader = kwargs['valid_data_loader']
@@ -28,8 +30,12 @@ class Trainer:
             tk = tqdm(self.train_data_loader)
             self.model.train()
             for images, targets in tk:
-                images = images.to(self.device).float() 
-                targets = targets[:, 0].to(self.device)
+                if self.args.train_multinode and self.gpu is not None:
+                    images = images.cuda(non_blocking=True).float()
+                    targets = targets[:, 0].cuda(non_blocking=True)
+                else:
+                    images = images.to(self.device).float() 
+                    targets = targets[:, 0].to(self.device)
                 if self.mixed_precision:
                     with torch.cuda.amp.autocast():
                         pred = self.model(images)
@@ -65,7 +71,13 @@ class Trainer:
             y_true = []
             y_pred = []
             for images, targets in tk:
-                images = images.to(self.device).float() 
+                if self.args.train_multinode and self.gpu is not None:
+                    images = images.cuda(non_blocking=True).float()
+                    # targets = targets[:, 0].cuda(non_blocking=True)
+                else:
+                    images = images.to(self.device).float() 
+                    # targets = targets[:, 0].to(self.device)
+                # images = images.to(self.device).float() 
                 targets = targets[:, 0]
                 val_output = self.model(images)
                 val_output = val_output.cpu()
@@ -95,11 +107,12 @@ class Trainer:
             tk.close()
 
     def export_model(self, epoch):
-        torch.save({
-            'epoch': epoch,
-            'model_state_dict': self.model.state_dict(),
-            'optimizer_state_dict': self.optimizer.state_dict(),
-            }, os.path.join(self.args.save_path, self.args.experiment_name, "best_model_epoch_" + str(epoch) + ".pth"))
+        if (self.args.train_multinode and self.rank == 0) or not self.args.train_multinode:
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': self.model.state_dict(),
+                'optimizer_state_dict': self.optimizer.state_dict(),
+                }, os.path.join(self.args.save_path, self.args.experiment_name, "best_model_epoch_" + str(epoch) + ".pth"))
 
 
     def write_log(self, key, value, step):

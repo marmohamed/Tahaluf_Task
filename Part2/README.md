@@ -49,3 +49,5 @@ We have multiple model to try from torchvision, efficientnet and timm libraries,
 * Distributed Training:
 
 It is supported and you can check the arguments for enabling multi gpu/node training but not tested on my machine as I do not have te required resources.
+
+
