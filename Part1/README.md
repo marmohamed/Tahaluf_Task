@@ -1,3 +1,4 @@
+* The notebook attached is just a run of a pretrained model (yolo-s) using kaggle environment.
 
 * Questions on the paper:
 
@@ -9,3 +10,9 @@
 * I liked the idea of multi-positive. It is similar to MIL Tracker. They share the idea of making use of output that are not 100% correct to handle the imbalance problem. 
 
 * YOLOX may not outperform YOLO with a large model size.
+
+* Suggestions to imrpove:
+1. Try Attention.
+2. For each detected object, we can add another layer to get that part from the original image and finetune the prediction. But, this will convert it to two-stage detector.
+3. Extending the idea of multi-positives, we can detect parts of the objects to increase the number of positive samples and making use of the gradient from small parts of objects. For example, we can detect the center and the corners of the object and we may add other parameters to predict to enhance the model features.
+4. Try self-supervised training during the original training.

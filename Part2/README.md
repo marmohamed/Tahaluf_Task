@@ -40,7 +40,7 @@ We track many metrics in tensorboard, the accuracy, f1-score (macro-micro) and a
 
 * Image size:
 
-The dataset has high resolution images, which is very good and allows us to use deeper models. Therefore, we make the width and the height of the image hyperparameters to change and increase/decrease our receptive field depending on the alllowed resources.
+The dataset has high resolution images, which is very good and allows us to use deeper models to use deeper networks to increase the receptive field. Therefore, we make the width and the height of the image hyperparameters to change and increase/decrease our receptive field depending on the alllowed resources.
 
 * Models:
 
